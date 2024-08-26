@@ -7,8 +7,39 @@ class Connector {
     this.x = x;
     this.y = y;
     this.r = r;
+
+    this.value = false;
     this.state = Connector.NOT_SELECTED;
     this.over = false;
+    this.connections = [];
+  }
+
+  addConnection(conn) {
+    this.connections.push(conn);
+    print("adding connection");
+    this.propagate();
+  }
+
+  setValue(value) {
+    this.value = value;
+    print("setting value");
+    this.propagate();
+  }
+
+  propagate() {
+    this.connections.forEach((c) => {
+      if (!this.equals(c.c1)) {
+        c.c1.setValue(this.value);
+      }
+
+      if (!this.equals(c.c2)) {
+        c.c2.setValue(this.value);
+      }
+    });
+  }
+
+  equals(o) {
+    return this.x == o.x && this.y == o.y;
   }
 
   mouseOver() {
@@ -46,6 +77,8 @@ class Connector {
 
   show() {
     fill(this.state);
+    circle(this.x, this.y, this.r * 2);
+    fill(this.value ? "rgba(255, 170, 0, 0.4)" : "rgba(255, 255, 255, 0.6)");
     circle(this.x, this.y, this.r * 2);
   }
 

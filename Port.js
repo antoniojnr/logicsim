@@ -5,46 +5,82 @@ class Port extends Movable {
     this.size = 50;
     this.connectorSize = 5;
     this.type = type;
-    print(connectors);
-    this.c1 = connectors[0];
-    this.c2 = connectors[1];
-    this.c3 = connectors[2];
 
-    this.c1.r = this.connectorSize;
-    this.c2.r = this.connectorSize;
-    this.c3.r = this.connectorSize;
+    if (type == "NOT") {
+      this.in1 = connectors[0];
+      this.out = connectors[1];
+
+      this.in1.port = this;
+      this.out.port = this;
+      print("port" + this.out.port);
+    } else {
+      this.in1 = connectors[0];
+      this.in2 = connectors[1];
+      this.out = connectors[2];
+
+      this.in1.port = this;
+      this.in2.port = this;
+      this.out.port = this;
+    }
+
+    if (type == "NOT") {
+      this.in1.r = this.connectorSize;
+      this.out.r = this.connectorSize;
+    } else {
+      this.in1.r = this.connectorSize;
+      this.in2.r = this.connectorSize;
+      this.out.r = this.connectorSize;
+    }
 
     this.updateConnectorsPositions();
   }
 
   getConnectorPositions() {
-    return {
-      c1: {
-        x: this.x - 20,
-        y: this.y + this.size / 4,
-      },
-      c2: {
-        x: this.x - 20,
-        y: this.y + 3 * (this.size / 4),
-      },
-      c3: {
-        x: this.x + this.size + 20,
-        y: this.y + 2 * (this.size / 4),
-      },
-    };
+    if (this.type == "NOT") {
+      return {
+        c1: {
+          x: this.x - 20,
+          y: this.y + this.size / 2,
+        },
+        c2: {
+          x: this.x + this.size + 20,
+          y: this.y + this.size / 2,
+        },
+      };
+    } else {
+      return {
+        c1: {
+          x: this.x - 20,
+          y: this.y + this.size / 4,
+        },
+        c2: {
+          x: this.x - 20,
+          y: this.y + 3 * (this.size / 4),
+        },
+        c3: {
+          x: this.x + this.size + 20,
+          y: this.y + 2 * (this.size / 4),
+        },
+      };
+    }
   }
 
   updateConnectorsPositions() {
     let conn = this.getConnectorPositions();
 
-    this.c1.x = conn.c1.x;
-    this.c1.y = conn.c1.y;
+    this.in1.x = conn.c1.x;
+    this.in1.y = conn.c1.y;
 
-    this.c2.x = conn.c2.x;
-    this.c2.y = conn.c2.y;
+    if (this.type == "NOT") {
+      this.out.x = conn.c2.x;
+      this.out.y = conn.c2.y;
+    } else {
+      this.in2.x = conn.c2.x;
+      this.in2.y = conn.c2.y;
 
-    this.c3.x = conn.c3.x;
-    this.c3.y = conn.c3.y;
+      this.out.x = conn.c3.x;
+      this.out.y = conn.c3.y;
+    }
   }
 
   mouseOver() {
@@ -80,23 +116,135 @@ class Port extends Movable {
     }
   }
 
+  and() {
+    rect(this.x, this.y, this.size / 2, this.size);
+    arc(
+      this.x + this.size / 2 - 1,
+      this.y + this.size / 2,
+      this.size,
+      this.size,
+      HALF_PI + PI,
+      HALF_PI
+    );
+  }
+
+  not() {
+    triangle(
+      this.x,
+      this.y,
+      this.x,
+      this.y + this.size,
+      this.x + this.size - 10,
+      this.y + this.size / 2
+    );
+    circle(this.x + this.size - 5, this.y + this.size / 2, 10);
+  }
+
+  or() {
+    beginShape();
+
+    // Add the first anchor point.
+    vertex(this.x, this.y);
+
+    // Add the Bézier vertex.
+    bezierVertex(
+      this.x + 15,
+      this.y + this.size / 6,
+      this.x + 15,
+      this.y + 5 * (this.size / 6),
+      this.x,
+      this.y + this.size
+    );
+
+    bezierVertex(
+      this.x,
+      this.y + this.size,
+      this.x + 40,
+      this.y + this.size,
+      this.x + this.size + 5, // pontax
+      this.y + this.size / 2 // pontay
+    );
+
+    bezierVertex(
+      this.x + this.size + 5, // pontax
+      this.y + this.size / 2, // pontay
+      this.x + 40,
+      this.y,
+      this.x,
+      this.y
+    );
+
+    // Stop drawing the shape.
+    endShape();
+  }
+
   show() {
     fill(this.state);
-    square(this.x, this.y, this.size);
-    fill(0);
-    textSize(16);
-    textAlign(CENTER, CENTER);
-    strokeWeight(1);
-    text(this.type, this.x + this.size / 2, this.y + this.size / 2);
+    // linhas
     strokeWeight(2);
     let conn = this.getConnectorPositions();
-    line(conn.c1.x, conn.c1.y, conn.c1.x + 20, conn.c1.y);
-    line(conn.c2.x, conn.c2.y, conn.c2.x + 20, conn.c2.y);
-    line(conn.c3.x, conn.c3.y, conn.c3.x - 20, conn.c3.y);
+    if (this.type == "NOT") {
+      line(conn.c1.x, conn.c1.y, conn.c1.x + 30, conn.c1.y);
+      line(conn.c2.x, conn.c2.y, conn.c2.x - 20, conn.c2.y);
+    } else {
+      line(conn.c1.x, conn.c1.y, conn.c1.x + 30, conn.c1.y);
+      line(conn.c2.x, conn.c2.y, conn.c2.x + 30, conn.c2.y);
+      line(conn.c3.x, conn.c3.y, conn.c3.x - 20, conn.c3.y);
+    }
+
     strokeWeight(1);
+
+    if (this.type == "AND") {
+      this.and();
+    } else if (this.type == "OR") {
+      this.or();
+    } else if (this.type == "NOT") {
+      this.not();
+    }
+    // this.and();
+    // fill(0);
+    // textSize(16);
+    // textAlign(CENTER, CENTER);
+    // strokeWeight(1);
+    // text(this.type, this.x + this.size / 2, this.y + this.size / 2);
+
     fill(255);
-    this.c1.show();
-    this.c2.show();
-    this.c3.show();
+    this.in1.show();
+    if (this.type != "NOT") this.in2.show();
+    this.out.show();
   }
+
+  calculateOutput() {
+    if (this.type == "AND") {
+      return this.in1.value && this.in2.value;
+    } else if (this.type == "OR") {
+      return this.in1.value || this.in2.value;
+    } else if (this.type == "NOT") {
+      return !this.in1.value;
+    }
+  }
+
+  update() {
+    let output = this.calculateOutput();
+    print("update: " + output + " on out " + this.out.type);
+    this.out.setValue(output);
+    // atualizar as saídas das portas
+  }
+
+  equals(o) {
+    return this.x == o.x && this.y == o.y && this.type == o.type;
+  }
+
+  // propagate() {
+
+  //   this.connections.forEach((c) => {
+  //     if (!this.equals(c.c1)) {
+  //       c.c1.setValue(this.value);
+  //     }
+
+  //     if (!this.equals(c.c2)) {
+  //       c.c2.setValue(this.value);
+  //     }
+  //   });
+  // }
 }
