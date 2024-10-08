@@ -66,10 +66,26 @@ class Connection {
   }
 
   mouseDragged() {
+    // let dragged = [];
     for (let p of this.points) {
       if (p.over) {
         p.x = mouseX;
         p.y = mouseY;
+        return p;
+      }
+    }
+    return null;
+    // return dragged;
+  }
+
+  /*
+    Adjusts the connection draggable points to a new position (x, y).
+  */
+  adjust(x, y) {
+    for (let p of this.points) {
+      if (p.over) {
+        p.x = x;
+        p.y = y;
       }
     }
   }

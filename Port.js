@@ -2,7 +2,7 @@ class Port extends Movable {
   constructor(x, y, type, ...connectors) {
     super(x, y);
 
-    this.size = 50;
+    this.size = 35;
     this.connectorSize = 5;
     this.type = type;
 
@@ -159,7 +159,11 @@ class Port extends Movable {
     bezierVertex(
       this.x,
       this.y + this.size,
+<<<<<<< HEAD
       this.x + 40,
+=======
+      this.x + 5 * (this.size / 6),
+>>>>>>> 7924d3a (Big update. A lot of things done.)
       this.y + this.size,
       this.x + this.size + 5, // pontax
       this.y + this.size / 2 // pontay
@@ -168,7 +172,11 @@ class Port extends Movable {
     bezierVertex(
       this.x + this.size + 5, // pontax
       this.y + this.size / 2, // pontay
+<<<<<<< HEAD
       this.x + 40,
+=======
+      this.x + 5 * (this.size / 6),
+>>>>>>> 7924d3a (Big update. A lot of things done.)
       this.y,
       this.x,
       this.y
@@ -192,7 +200,11 @@ class Port extends Movable {
       line(conn.c3.x, conn.c3.y, conn.c3.x - 20, conn.c3.y);
     }
 
+<<<<<<< HEAD
     strokeWeight(1);
+=======
+    // strokeWeight(1);
+>>>>>>> 7924d3a (Big update. A lot of things done.)
 
     if (this.type == "AND") {
       this.and();

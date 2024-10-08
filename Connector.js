@@ -22,7 +22,6 @@ class Connector {
 
   setValue(value) {
     this.value = value;
-    print("setting value");
     this.propagate();
   }
 
@@ -64,7 +63,11 @@ class Connector {
     if (this.over) {
       this.x = mouseX;
       this.y = mouseY;
+
+      return this;
     }
+
+    return null;
   }
 
   mouseReleased() {
@@ -81,16 +84,4 @@ class Connector {
     fill(this.value ? "rgba(255, 170, 0, 0.4)" : "rgba(255, 255, 255, 0.6)");
     circle(this.x, this.y, this.r * 2);
   }
-
-  // select() {
-  //   this.color = Connector.SELECTED;
-  // }
-
-  // active() {
-  //   this.color = Connector.ACTIVE;
-  // }
-
-  // normal() {
-  //   this.color = Connector.NOT_SELECTED;
-  // }
 }
