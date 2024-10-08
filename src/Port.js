@@ -12,7 +12,6 @@ class Port extends Movable {
 
       this.in1.port = this;
       this.out.port = this;
-      print("port" + this.out.port);
     } else {
       this.in1 = connectors[0];
       this.in2 = connectors[1];
@@ -143,10 +142,8 @@ class Port extends Movable {
   or() {
     beginShape();
 
-    // Add the first anchor point.
     vertex(this.x, this.y);
 
-    // Add the Bézier vertex.
     bezierVertex(
       this.x + 15,
       this.y + this.size / 6,
@@ -159,11 +156,7 @@ class Port extends Movable {
     bezierVertex(
       this.x,
       this.y + this.size,
-<<<<<<< HEAD
       this.x + 40,
-=======
-      this.x + 5 * (this.size / 6),
->>>>>>> 7924d3a (Big update. A lot of things done.)
       this.y + this.size,
       this.x + this.size + 5, // pontax
       this.y + this.size / 2 // pontay
@@ -172,21 +165,17 @@ class Port extends Movable {
     bezierVertex(
       this.x + this.size + 5, // pontax
       this.y + this.size / 2, // pontay
-<<<<<<< HEAD
       this.x + 40,
-=======
-      this.x + 5 * (this.size / 6),
->>>>>>> 7924d3a (Big update. A lot of things done.)
       this.y,
       this.x,
       this.y
     );
 
-    // Stop drawing the shape.
     endShape();
   }
 
   show() {
+    push();
     fill(this.state);
     // linhas
     strokeWeight(2);
@@ -200,35 +189,31 @@ class Port extends Movable {
       line(conn.c3.x, conn.c3.y, conn.c3.x - 20, conn.c3.y);
     }
 
-<<<<<<< HEAD
-    strokeWeight(1);
-=======
-    // strokeWeight(1);
->>>>>>> 7924d3a (Big update. A lot of things done.)
-
     if (this.type == "AND") {
       this.and();
     } else if (this.type == "OR") {
       this.or();
     } else if (this.type == "NOT") {
       this.not();
+    } else if (this.type == "NAND") {
+      this.and();
+      circle(conn.c3.x - 15, conn.c3.y, this.connectorSize * 2);
     }
-    // this.and();
-    // fill(0);
-    // textSize(16);
-    // textAlign(CENTER, CENTER);
-    // strokeWeight(1);
-    // text(this.type, this.x + this.size / 2, this.y + this.size / 2);
 
     fill(255);
     this.in1.show();
     if (this.type != "NOT") this.in2.show();
     this.out.show();
+    pop();
   }
 
   calculateOutput() {
+    if (!this.in1.connected || !(this.in2 && this.in2.connected)) return false;
+
     if (this.type == "AND") {
       return this.in1.value && this.in2.value;
+    } else if (this.type == "NAND") {
+      return !(this.in1.value && this.in2.value);
     } else if (this.type == "OR") {
       return this.in1.value || this.in2.value;
     } else if (this.type == "NOT") {
@@ -238,25 +223,10 @@ class Port extends Movable {
 
   update() {
     let output = this.calculateOutput();
-    print("update: " + output + " on out " + this.out.type);
     this.out.setValue(output);
-    // atualizar as saídas das portas
   }
 
   equals(o) {
     return this.x == o.x && this.y == o.y && this.type == o.type;
   }
-
-  // propagate() {
-
-  //   this.connections.forEach((c) => {
-  //     if (!this.equals(c.c1)) {
-  //       c.c1.setValue(this.value);
-  //     }
-
-  //     if (!this.equals(c.c2)) {
-  //       c.c2.setValue(this.value);
-  //     }
-  //   });
-  // }
 }

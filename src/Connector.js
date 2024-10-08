@@ -8,6 +8,7 @@ class Connector {
     this.y = y;
     this.r = r;
 
+    this.connected = false;
     this.value = false;
     this.state = Connector.NOT_SELECTED;
     this.over = false;
@@ -16,11 +17,11 @@ class Connector {
 
   addConnection(conn) {
     this.connections.push(conn);
-    print("adding connection");
     this.propagate();
   }
 
   setValue(value) {
+    this.connected = true;
     this.value = value;
     this.propagate();
   }
@@ -81,7 +82,11 @@ class Connector {
   show() {
     fill(this.state);
     circle(this.x, this.y, this.r * 2);
-    fill(this.value ? "rgba(255, 170, 0, 0.4)" : "rgba(255, 255, 255, 0.6)");
+    fill(
+      this.value && this.connected
+        ? "rgba(255, 170, 0, 0.4)"
+        : "rgba(255, 255, 255, 0.6)"
+    );
     circle(this.x, this.y, this.r * 2);
   }
 }

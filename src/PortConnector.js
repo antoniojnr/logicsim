@@ -11,7 +11,6 @@ class PortConnector extends Connector {
     super.setValue(value);
 
     if (this.type == PortConnector.IN) {
-      print("calling port update");
       this.port.update();
     }
   }

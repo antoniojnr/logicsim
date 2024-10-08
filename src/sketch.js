@@ -7,16 +7,23 @@ let guide;
 let mouseState;
 let itemDragged;
 let showGuide = false;
-let info;
-let ports = ["CONNECTOR", "SWITCH", "AND", "OR", "NOT", "CONST1", "CONST0"];
+let ports = [
+  "CONNECTOR",
+  "SWITCH",
+  "AND",
+  "OR",
+  "NOT",
+  "NAND",
+  "CONST1",
+  "CONST0",
+];
 
 function setup() {
-  createCanvas(800, 550);
+  createCanvas(windowWidth, windowHeight);
   // createPort(width / 2, height / 2, "OR");
   guide = createVector(width / 2, height / 2);
   frameRate(120);
 
-  info = document.getElementById("info");
   document
     .getElementById("btnConn")
     .addEventListener("click", (e) => (nowDrawing = 0));
@@ -32,6 +39,9 @@ function setup() {
   document
     .getElementById("btnNot")
     .addEventListener("click", (e) => (nowDrawing = 4));
+  document
+    .getElementById("btnNand")
+    .addEventListener("click", (e) => (nowDrawing = 5));
 }
 
 function draw() {
@@ -43,12 +53,6 @@ function draw() {
   if (startConnection) {
     line(startConnection.x, startConnection.y, mouseX, mouseY);
   }
-
-  fill(0);
-  strokeWeight(1);
-  textSize(20);
-  textAlign(LEFT, CENTER);
-  text(ports[nowDrawing], 20, 380);
 
   if (showGuide) {
     fill("rgba(0, 0, 255, 0.4)");
@@ -69,63 +73,93 @@ function createPort(x, y, type) {
     connectors.push(c1, c2);
 
     let p = new Port(x, y, "NOT", c1, c2);
-
+    c1.port = p;
+    c2.port = p;
     items.push(p);
   } else if (type == "CONNECTOR") {
     connectors.push(new Connector(x, y, 10));
-<<<<<<< HEAD
-=======
   } else if (type == "SWITCH") {
     connectors.push(new Switch(x, y));
->>>>>>> 7924d3a (Big update. A lot of things done.)
   } else {
     let c1 = new PortConnector(0, 0, 0, PortConnector.IN);
     let c2 = new PortConnector(0, 0, 0, PortConnector.IN);
     let c3 = new PortConnector(0, 0, 0, PortConnector.OUT);
 
     connectors.push(c1, c2, c3);
-<<<<<<< HEAD
-    print(connectors);
+
     let p = new Port(x, y, type, c1, c2, c3);
-
+    c1.port = p;
+    c2.port = p;
+    c3.port = p;
     items.push(p);
-=======
-
-    items.push(new Port(x, y, type, c1, c2, c3));
->>>>>>> 7924d3a (Big update. A lot of things done.)
   }
 }
 
 function mouseClicked() {
   for (let c of connectors) {
-<<<<<<< HEAD
-    if (c.mouseOver() && startConnection) {
-      let newC = new Connection(startConnection, c);
-      if (!connections.some((e) => e.equals(newC))) {
-        connections.push(newC);
-        startConnection.addConnection(newC);
+    // if (c.mouseOver() && startConnection) {
+    //   let newC = new Connection(startConnection, c);
+    //   if (!connections.some((e) => e.equals(newC))) {
+    //     connections.push(newC);
+    //     startConnection.addConnection(newC);
 
-        startConnection = null;
-        return;
-      }
-    }
-=======
+    //     startConnection = null;
+    //     return;
+    //   }
+    // }
+
     if (c.mouseOver())
       if (startConnection) {
         let newC = new Connection(startConnection, c);
         if (!connections.some((e) => e.equals(newC))) {
-          connections.push(newC);
-          startConnection.addConnection(newC);
+          if (startConnection instanceof PortConnector) {
+            if (c instanceof Switch) {
+              c.addConnection(newC);
+              connections.push(newC);
+            } else if (c instanceof PortConnector) {
+              // Se c e startConnection são conectores de portas...
+              if (!c.port.equals(startConnection.port)) {
+                // A conexão só pode ser feita com conectores de portas diferentes
+                print("portas diferentes");
+                if (c.type != startConnection.type) {
+                  // A conexão deve ser sempre adicionada ao conector cujo tipo é OUT
+                  if (c.type == PortConnector.IN) {
+                    startConnection.addConnection(newC);
+                    connections.push(newC);
+                  } else if (c.type == PortConnector.OUT) {
+                    c.addConnection(newC);
+                    connections.push(newC);
+                  }
+                }
+              }
+              // PortConnector com PortConnector ainda não funciona
+              //
+              // if (c.type != startConnection.type) {
+              //   if (c.type == PortConnector.IN) {
+              //     startConnection.addConnection(newC);
+              //     connections.push(newC);
+              //   } else if (c.type == PortConnector.OUT) {
+              //     c.addConnection(newC);
+              //     connections.push(newC);
+              //   }
+              // }
+            }
+          } else if (startConnection instanceof Switch) {
+            if (c instanceof PortConnector) {
+              startConnection.addConnection(newC);
+              connections.push(newC);
+            }
+          }
 
           startConnection = null;
           return;
         }
       } else {
+        // Se a função mouseClicked estiver definida
         if (c.mouseClicked) {
           c.mouseClicked();
         }
       }
->>>>>>> 7924d3a (Big update. A lot of things done.)
   }
   startConnection = null;
 }
@@ -156,14 +190,10 @@ function doubleClicked() {
 }
 
 function mouseMoved() {
-  for (let c of connectors) {
-    if (c.mouseOver()) {
-      return;
-    }
-  }
+  let list = [...connectors, ...items];
 
-  for (let c of items) {
-    if (c.mouseOver()) {
+  for (let elm of list) {
+    if (elm.mouseOver()) {
       return;
     }
   }
@@ -195,8 +225,6 @@ function mouseReleased() {
       connectors.forEach((c) => {
         if (c.adjust) {
           c.adjust(guide.x, guide.y);
-        } else {
-          print("unavailable ", c);
         }
       });
     }
@@ -218,15 +246,6 @@ function mouseDragged() {
   if (dragging instanceof Connection) {
     connectors.forEach((c1) => {
       connectors.forEach((c2) => {
-        // if (abs(c1.x - mouseX) < 10) {
-        //   guide.x = c1.x;
-        //   guide.y = mouseY;
-        //   showGuide = true;
-        // } else if (abs(c2.y - mouseY) < 10) {
-        //   guide.x = mouseX;
-        //   guide.y = c2.y;
-        //   showGuide = true;
-        // } else
         if (abs(c1.x - mouseX) < 10 && abs(c2.y - mouseY) < 10) {
           guide.x = c1.x;
           guide.y = c2.y;
@@ -242,7 +261,6 @@ function mouseDragged() {
     connectors
       .filter((c) => !c.equals(dragging))
       .forEach((c) => {
-        let details = "";
         if (abs(c.x - mouseX) < 10) {
           guide.x = c.x;
           guide.y = mouseY;
