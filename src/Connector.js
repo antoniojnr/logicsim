@@ -4,6 +4,7 @@ class Connector {
   static NOT_SELECTED = "#FFFFFF";
 
   constructor(x, y, r) {
+    this.id = Utils.generateUniqueId();
     this.x = x;
     this.y = y;
     this.r = r;

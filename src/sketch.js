@@ -4,6 +4,7 @@ let connections = [];
 let startConnection;
 let nowDrawing = 0;
 let guide;
+let fileInput;
 let mouseState;
 let itemDragged;
 let showGuide = false;
@@ -42,6 +43,133 @@ function setup() {
   document
     .getElementById("btnNand")
     .addEventListener("click", (e) => (nowDrawing = 5));
+  document
+    .getElementById("btnSave")
+    .addEventListener("click", (e) => saveCircuit());
+  document
+    .getElementById("btnLoad")
+    .addEventListener("click", (e) => loadCircuit());
+}
+
+function loadCircuit() {
+  fileInput = createFileInput(handleData, true);
+  fileInput.position(3, 25);
+}
+
+function handleData(file) {
+  connectors = file.data.connectors.map((c) => deserializeConnector(c));
+  print(connectors);
+  items = file.data.items.map((i) => deserializePort(i));
+  print(items);
+  connections = file.data.connections.map((c) => deserializeConnection(c));
+
+  solveReferences();
+  print(connections);
+}
+
+function deserializePort(port) {
+  if (port.type === "NOT") {
+    let c1 = connectors.find((c) => c.id == port.in1);
+    let c2 = connectors.find((c) => c.id == port.out);
+
+    let p = new Port(port.x, port.y, port.type, c1, c2);
+
+    p.id = port.id;
+    p.size = port.size;
+    p.connectorSize = port.connectorSize;
+
+    return p;
+  } else {
+    let c1 = connectors.find((c) => c.id == port.in1);
+    let c2 = connectors.find((c) => c.id == port.in2);
+    let c3 = connectors.find((c) => c.id == port.out);
+
+    let p = new Port(port.x, port.y, port.type, c1, c2, c3);
+
+    p.id = port.id;
+    p.size = port.size;
+    p.connectorSize = port.connectorSize;
+
+    return p;
+  }
+}
+
+function deserializeConnector(ctor) {
+  let c = new PortConnector(ctor.x, ctor.y, ctor.r, ctor.type);
+  c.id = ctor.id;
+  c.port = ctor.port;
+  c.connections = ctor.connections;
+
+  return c;
+}
+
+function deserializeConnection(ction) {
+  let c = new Connection(ction.c1, ction.c2);
+  c.id = ction.id;
+  c.points = ction.points;
+
+  return c;
+}
+
+function solveReferences() {
+  for (let c of connectors) {
+    c.connections = c.connections.map((cId) =>
+      connections.find((c1) => c1.id == cId)
+    );
+  }
+
+  connections.forEach((ction) => {
+    let c1 = connectors.find((c) => c.id == ction.c1);
+    if (c1) ction.c1 = c1;
+
+    let c2 = connectors.find((c) => c.id == ction.c2);
+    if (c2) ction.c2 = c2;
+  });
+}
+
+function serializePort(port) {
+  return {
+    id: port.id,
+    size: port.size,
+    connectorSize: port.connectorSize,
+    type: port.type,
+    x: port.x,
+    y: port.y,
+    in1: port.in1.id,
+    in2: port.in2.id,
+    out: port.out.id,
+  };
+}
+
+function serializeConnector(c) {
+  return {
+    id: c.id,
+    x: c.x,
+    y: c.y,
+    r: c.r,
+    type: c.type,
+    port: c.port.id,
+    connections: c.connections.map((conn) => conn.id),
+  };
+}
+
+function serializeConnection(c) {
+  return {
+    id: c.id,
+    c1: c.c1.id,
+    c2: c.c2.id,
+    points: c.points,
+  };
+}
+
+function saveCircuit() {
+  let data = {
+    items: items.map((i) => serializePort(i)),
+    connections: connections.map((c) => serializeConnection(c)),
+    connectors: connectors.map((c) => serializeConnector(c)),
+  };
+
+  saveJSON(data, "circuit.json", true);
 }
 
 function draw() {
@@ -73,8 +201,7 @@ function createPort(x, y, type) {
     connectors.push(c1, c2);
 
     let p = new Port(x, y, "NOT", c1, c2);
-    c1.port = p;
-    c2.port = p;
+
     items.push(p);
   } else if (type == "CONNECTOR") {
     connectors.push(new Connector(x, y, 10));
@@ -88,35 +215,25 @@ function createPort(x, y, type) {
     connectors.push(c1, c2, c3);
 
     let p = new Port(x, y, type, c1, c2, c3);
-    c1.port = p;
-    c2.port = p;
-    c3.port = p;
+
     items.push(p);
   }
 }
 
 function mouseClicked() {
   for (let c of connectors) {
-    // if (c.mouseOver() && startConnection) {
-    //   let newC = new Connection(startConnection, c);
-    //   if (!connections.some((e) => e.equals(newC))) {
-    //     connections.push(newC);
-    //     startConnection.addConnection(newC);
-
-    //     startConnection = null;
-    //     return;
-    //   }
-    // }
-
     if (c.mouseOver())
       if (startConnection) {
+        print("1. startConnection is set");
         let newC = new Connection(startConnection, c);
         if (!connections.some((e) => e.equals(newC))) {
+          print("2. new connection", startConnection, c);
           if (startConnection instanceof PortConnector) {
             if (c instanceof Switch) {
               c.addConnection(newC);
               connections.push(newC);
             } else if (c instanceof PortConnector) {
+              print("3. PortConnector to PortConnector");
               // Se c e startConnection são conectores de portas...
               if (!c.port.equals(startConnection.port)) {
                 // A conexão só pode ser feita com conectores de portas diferentes

@@ -5,6 +5,7 @@ class Connection {
   static POINT_RADIUS = 3.5;
 
   constructor(c1, c2) {
+    this.id = Utils.generateUniqueId();
     this.c1 = c1;
     this.c2 = c2;
     this.points = [];
